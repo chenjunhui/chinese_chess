@@ -128,14 +128,60 @@
 
 ### 悔棋逻辑修复（两个 bug）
 - **Bug 1 — 多人模式红方不能悔棋**：`GameView.vue` 悔棋按钮条件从 `game.turn === 'red'` 改为 `game.turn !== game.myColor`。原来只有黑方走完（轮到红方时）才显示按钮，改为"不是自己的回合时可见"（即刚走完棋的人可悔棋）
-- **Bug 2 — AI 模式只回退一步**：`server/index.js` 单人/AI 模式下 `applyUndo(true)` 连续调用两次，同时回退 AI 的走法和玩家的走法，完整撤销一回合
+- **Bug 2 — AI 模式只回退一步**：新增 `applySinglePlayerUndo()` 方法，根据 `currentTurn` 判断最后一步是谁走的：
+  - `currentTurn === RED`（AI 刚走完）→ 回退 2 步（AI + 玩家）
+  - `currentTurn === BLACK`（玩家刚走完）→ 回退 1 步（玩家）
+  - 完成后强制 `currentTurn = RED`，始终轮到人下棋
 - 前端文件：`src/views/GameView.vue`
-- 后端文件：`server/index.js`
+- 后端文件：`server/index.js`, `server/gameState.js`
+
+### AI 悔棋定时器修复
+- AI 模式悔棋时需清除 `setTimeout` 定时器，否则定时器触发后会发送无效的 GAME_MOVE 导致"不能移动对方棋子"报错
+- 在 `requestUndo` 中立即清除定时器，而非等 GAME_UNDO_RESULT 回来再清（避免竞态条件）
+- 新增 `aiTimer` 变量存储定时器 ID
+
+### 弹窗统一为自定义样式
+- 所有原生 `confirm()` / `alert()` 替换为自定义毛玻璃弹窗
+- 风格：半透明背景 + backdrop-filter: blur(4px) + 渐变按钮 + 悬停上浮效果
+- 新增 `showConfirm(message)` 返回 Promise，`showAlert(message)` 仅展示
+- 涉及文件：`game.js`（store）、`GameView.vue`、`TableCard.vue`、`GameResult.vue`
+
+### AI 难度选择弹窗闪烁修复
+- `table-card` 的 `transform: translateY(-2px)` 导致内部 `position: fixed` 失效
+- 使用 `<Teleport to="body">` 将弹窗传送到 body 上，脱离父组件 transform 影响
+
+### 多人对战改名为双人对战
+- `README.md`、`LobbyView.vue` 中所有"多人"改为"双人"
+
+### 直接访问 /game 路由守卫
+- `router/index.js` 添加 `beforeEach` 守卫，未进入游戏时访问 `/game` 自动跳转首页
+
+### 棋盘最后一步高亮
+- 红黑双方的最后一步分别用不同颜色高亮（红色/深灰色半透明 + 光晕）
+- 新增 `lastMoveRed` / `lastMoveBlack` ref，分别追踪双方最后一步
+
+### AI 思考中标签优化
+- 从独立行改为绝对定位叠在棋盘中央，不占布局空间
+- 悔棋结果回来时重置 `thinking` 状态
+
+### 旁观者功能
+- **服务端**：`rooms.js` 新增 `spectators` 数组追踪旁观者；`index.js` 新增 `TABLE_WATCH` handler
+- **客户端**：`lobby.js` 新增 `watch()` 方法；`game.js` 新增 `isSpectator` 状态
+- **大厅**：TableCard 新增"旁观"按钮（仅对弈中的桌子显示），显示旁观人数
+- **游戏界面**：旁观者显示"旁观中"标签，隐藏悔棋/重启按钮，禁止操作棋子
+- **棋盘**：旁观者加入时同步最后一步高亮
+- **悔棋同步**：单人/AI 模式悔棋结果发送给桌上所有客户端（含旁观者）
+- **游戏结束**：旁观者显示"对局结束"而非"恭喜你赢了"
+- **AI 难度**：旁观者加入时从 `table.aiDepth` 获取难度信息
+- 涉及文件：`server/protocol.js`、`server/rooms.js`、`server/index.js`、`src/ws/protocol.js`、`src/stores/lobby.js`、`src/stores/game.js`、`src/components/TableCard.vue`、`src/views/LobbyView.vue`、`src/views/GameView.vue`、`src/components/GameResult.vue`
 
 ## 待办
 
-### Git 版本管理 + 推送 GitHub（2026-07-03）
-- 初始化 git 仓库
-- 创建 .gitignore（排除 node_modules、dist）
-- 首次提交
-- 创建 GitHub 远程仓库并推送
+### 离开游戏室按钮（未完成）
+- LobbyView 大厅界面增加"离开游戏室"按钮
+- 点击后：清除 localStorage 的 `chess_playerName`，断开 WebSocket，重置 lobby store 状态，回到登录界面
+
+### Playwright 自动化测试（2026-07-04）
+- 已安装 playwright（devDependency），Chromium 浏览器下载中断，需完成安装
+- 测试用例覆盖：大厅进入、双人对战、单人模式、AI 对战、悔棋、旁观者、游戏结束
+- 测试脚本放在 `tests/` 目录
