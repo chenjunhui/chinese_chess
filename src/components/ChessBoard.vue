@@ -33,7 +33,12 @@
             v-for="(c, ci) in displayCols"
             :key="c.orig"
             class="intersection"
-            :class="{ selected: isSelected(r.orig, c.orig), valid: isValid(r.orig, c.orig) }"
+            :class="{
+              selected: isSelected(r.orig, c.orig),
+              valid: isValid(r.orig, c.orig),
+              'last-move-red': isLastMove(r.orig, c.orig) === 'red',
+              'last-move-black': isLastMove(r.orig, c.orig) === 'black'
+            }"
             :style="{ left: ci * cellSize + 'px', top: ri * cellSize + 'px' }"
             @click="onCellClick(r.orig, c.orig)"
           >
@@ -73,7 +78,7 @@ import { computed } from 'vue'
 import { ROWS, COLS } from '../game/constants.js'
 import ChessPiece from './ChessPiece.vue'
 
-const props = defineProps({
+  const props = defineProps({
   board: { type: Array, required: true },
   myColor: { type: String, required: true },
   playerName: { type: String, default: '' },
@@ -81,7 +86,9 @@ const props = defineProps({
   selectedPiece: { type: Array, default: null },
   validMoves: { type: Array, default: () => [] },
   gameMode: { type: String, default: 'multiplayer' },
-  currentTurn: { type: String, default: 'red' }
+  currentTurn: { type: String, default: 'red' },
+  lastMoveRed: { type: Object, default: null },
+  lastMoveBlack: { type: Object, default: null }
 })
 
 const emit = defineEmits(['select', 'move'])
@@ -118,6 +125,22 @@ function isSelected(r, c) {
 
 function isValid(r, c) {
   return props.validMoves.some(([vr, vc]) => vr === r && vc === c)
+}
+
+function isLastMove(r, c) {
+  if (props.lastMoveRed) {
+    if ((props.lastMoveRed.from[0] === r && props.lastMoveRed.from[1] === c) ||
+        (props.lastMoveRed.to[0] === r && props.lastMoveRed.to[1] === c)) {
+      return 'red'
+    }
+  }
+  if (props.lastMoveBlack) {
+    if ((props.lastMoveBlack.from[0] === r && props.lastMoveBlack.from[1] === c) ||
+        (props.lastMoveBlack.to[0] === r && props.lastMoveBlack.to[1] === c)) {
+      return 'black'
+    }
+  }
+  return null
 }
 
 function onCellClick(r, c) {
@@ -308,6 +331,18 @@ const starMarks = computed(() => {
 .intersection.valid {
   background: rgba(76, 175, 80, 0.35);
   border-radius: 50%;
+}
+
+.intersection.last-move-red {
+  background: rgba(211, 47, 47, 0.5);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(211, 47, 47, 0.6);
+}
+
+.intersection.last-move-black {
+  background: rgba(55, 71, 79, 0.5);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(55, 71, 79, 0.6);
 }
 
 .star-mark {

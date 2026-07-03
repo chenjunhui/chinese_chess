@@ -16,7 +16,8 @@ export const useGameStore = defineStore('game', () => {
   const gameOver = ref(false)
   const winner = ref(null)
   const gameOverReason = ref(null)
-  const lastMove = ref(null)
+  const lastMoveRed = ref(null)
+  const lastMoveBlack = ref(null)
   const pendingUndo = ref(false)
   const undoRequestFrom = ref(null)
   const pendingRestart = ref(false)
@@ -44,7 +45,8 @@ export const useGameStore = defineStore('game', () => {
     turn.value = 'red'
     gameOver.value = false
     winner.value = null
-    lastMove.value = null
+    lastMoveRed.value = null
+    lastMoveBlack.value = null
     selectedPiece.value = null
     validMoves.value = []
     gameMode.value = payload.gameMode || 'multiplayer'
@@ -53,8 +55,14 @@ export const useGameStore = defineStore('game', () => {
 
     wsClient.on(MSG.GAME_MOVED, (p) => {
       board.value = p.board
+      const moveColor = p.turn === 'red' ? 'black' : 'red'
+      const move = { from: p.from, to: p.to }
+      if (moveColor === 'red') {
+        lastMoveRed.value = move
+      } else {
+        lastMoveBlack.value = move
+      }
       turn.value = p.turn
-      lastMove.value = { from: p.from, to: p.to }
       selectedPiece.value = null
       validMoves.value = []
 
@@ -67,7 +75,7 @@ export const useGameStore = defineStore('game', () => {
             wsClient.send(MSG.GAME_MOVE, { from: [move.fromR, move.fromC], to: [move.toR, move.toC] })
           }
           thinking.value = false
-        }, 3000)
+        }, 500)
       }
     })
 
@@ -95,7 +103,8 @@ export const useGameStore = defineStore('game', () => {
       }
       board.value = p.board
       turn.value = p.turn
-      lastMove.value = null
+      lastMoveRed.value = null
+      lastMoveBlack.value = null
       selectedPiece.value = null
       validMoves.value = []
       pendingUndo.value = false
@@ -210,7 +219,8 @@ export const useGameStore = defineStore('game', () => {
     gameOver.value = false
     winner.value = null
     gameOverReason.value = null
-    lastMove.value = null
+    lastMoveRed.value = null
+    lastMoveBlack.value = null
     selectedPiece.value = null
     validMoves.value = []
     pendingUndo.value = false
@@ -232,7 +242,7 @@ export const useGameStore = defineStore('game', () => {
 
   return {
     tableId, board, myColor, opponentName, selectedPiece, validMoves,
-    turn, gameOver, winner, gameOverReason, lastMove, pendingUndo, undoRequestFrom, myTurn,
+    turn, gameOver, winner, gameOverReason, lastMoveRed, lastMoveBlack, pendingUndo, undoRequestFrom, myTurn,
     pendingRestart, restartRequestFrom, gameMode, thinking, aiDepth,
     confirmMessage, confirmVisible, resolveConfirm, showConfirm,
     alertMessage, alertVisible, showAlert, closeAlert,

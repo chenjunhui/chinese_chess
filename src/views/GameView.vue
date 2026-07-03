@@ -41,6 +41,8 @@
         :valid-moves="game.validMoves"
         :game-mode="game.gameMode"
         :current-turn="game.turn"
+        :last-move-red="game.lastMoveRed"
+        :last-move-black="game.lastMoveBlack"
         @select="onSelect"
         @move="onMove"
       />
@@ -48,7 +50,7 @@
     </div>
 
     <div class="controls">
-      <button v-if="!game.gameOver && game.lastMove && (game.gameMode !== 'multiplayer' || game.turn !== game.myColor)" class="undo-btn" @click="game.requestUndo()">
+      <button v-if="!game.gameOver && (game.lastMoveRed || game.lastMoveBlack) && (game.gameMode !== 'multiplayer' || game.turn !== game.myColor)" class="undo-btn" @click="game.requestUndo()">
         悔棋
       </button>
       <button class="restart-btn" @click="game.requestRestart()">
