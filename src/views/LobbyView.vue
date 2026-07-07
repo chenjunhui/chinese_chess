@@ -6,7 +6,10 @@
       <button @click="join" :disabled="!nameInput.trim()">进入大厅</button>
     </div>
     <div v-else class="tables-container">
-      <h2>游戏大厅 - 欢迎 {{ lobby.playerName }}</h2>
+      <div class="lobby-header">
+        <h2>游戏大厅 - 欢迎 {{ lobby.playerName }}</h2>
+        <button class="logout-btn" @click="logout">离开游戏室</button>
+      </div>
       <div class="lobby-layout">
         <div class="help-section">
           <div class="help-header" @click="showHelp = !showHelp">
@@ -107,6 +110,10 @@ function onSelectMode(tableId, seatIndex, mode, depth) {
 function onWatch(tableId) {
   lobby.watch(tableId)
 }
+
+function logout() {
+  lobby.disconnect()
+}
 </script>
 
 <style scoped>
@@ -157,6 +164,28 @@ function onWatch(tableId) {
 .tables-container h2 {
   margin-bottom: 20px;
   color: #5D4037;
+}
+
+.lobby-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.logout-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  background: #EF5350;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.logout-btn:hover {
+  background: #E53935;
 }
 
 .lobby-layout {

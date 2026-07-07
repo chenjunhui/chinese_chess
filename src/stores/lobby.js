@@ -87,5 +87,16 @@ export const useLobbyStore = defineStore('lobby', () => {
     }
   }
 
-  return { userId, playerName, tables, myTableId, mySeat, watchTableId, connect, sit, selectMode, watch, leave }
+  function disconnect() {
+    localStorage.removeItem('chess_playerName')
+    wsClient.close()
+    userId.value = null
+    playerName.value = ''
+    tables.value = []
+    myTableId.value = null
+    mySeat.value = null
+    watchTableId.value = null
+  }
+
+  return { userId, playerName, tables, myTableId, mySeat, watchTableId, connect, sit, selectMode, watch, leave, disconnect }
 })

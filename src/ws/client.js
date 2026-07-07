@@ -4,10 +4,12 @@ class WsClient {
     this.handlers = new Map()
     this.reconnectTimer = null
     this.url = ''
+    this.isManualClose = false
   }
 
   connect(url) {
     this.url = url
+    this.isManualClose = false
     return new Promise((resolve, reject) => {
       this.ws = new WebSocket(url)
 
@@ -27,6 +29,10 @@ class WsClient {
       }
 
       this.ws.onclose = () => {
+        if (this.isManualClose) {
+          console.log('WebSocket closed manually')
+          return
+        }
         console.log('WebSocket disconnected, reconnecting in 3s...')
         this.reconnectTimer = setTimeout(() => this.connect(url), 3000)
       }
@@ -53,6 +59,7 @@ class WsClient {
   }
 
   close() {
+    this.isManualClose = true
     clearTimeout(this.reconnectTimer)
     if (this.ws) {
       this.ws.close()
