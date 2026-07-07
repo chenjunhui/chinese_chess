@@ -19,8 +19,14 @@ jobs:
         cd server && npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+    - name: Start backend server
+      run: cd server && npm start &
+    - name: Start frontend dev server
+      run: npm run dev &
+    - name: Wait for servers
+      run: sleep 5
     - name: Run Playwright tests
-      run: npx playwright test
+      run: npx playwright test --project=chromium
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
