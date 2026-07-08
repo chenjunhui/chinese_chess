@@ -183,10 +183,10 @@ test.describe('中国象棋游戏测试', () => {
       await expect(table1.locator('.seat-info').first()).toContainText('空位');
     });
 
-    test('离开游戏室', async ({ page }) => {
+    test('离开游戏大厅', async ({ page }) => {
       await joinLobby(page, '退出测试');
 
-      // 点击离开游戏室按钮
+      // 点击离开游戏大厅按钮
       await page.click('.logout-btn');
 
       // 应回到登录界面

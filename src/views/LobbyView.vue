@@ -8,7 +8,7 @@
     <div v-else class="tables-container">
       <div class="lobby-header">
         <h2>游戏大厅 - 欢迎 {{ lobby.playerName }}</h2>
-        <button class="logout-btn" @click="logout">离开游戏室</button>
+        <button class="logout-btn" @click="logout">离开游戏大厅</button>
       </div>
       <div class="lobby-layout">
         <div class="help-section">
